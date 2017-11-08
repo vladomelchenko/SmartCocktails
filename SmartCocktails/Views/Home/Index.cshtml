@@ -1,0 +1,74 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+<div>
+    <label>Введите email</label><br />
+    <input type="email" id="email" /> <br /><br />
+    <label>Введите пароль</label><br />
+    <input type="password" id="password" /><br /><br />
+    <label>Подтвердите пароль</label><br />
+    <input type="password" id="confirmpassword" /><br /><br />
+    <input type="submit" id="submit" value="Регистрация" />
+    
+    <input type="submit" id="cocktail" value="Регистрация" />
+</div>
+
+<div id="tableBlock"></div>
+
+
+@ViewBag.Constituents
+
+@section scripts{
+    <script type="text/javascript">
+        GetAllCocktails();
+        $(function() {
+            $('#submit').click(function(e) {
+                e.preventDefault();
+                var data = {
+                    Email: $('#email').val(),
+                    Password: $('#password').val(),
+                    ConfirmPassword: $('#confirmpassword').val()
+                };
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/api/Account/Register',
+                    contentType: 'application/json; charset=utf-8',
+                    data: JSON.stringify(data)
+                }).success(function(data) {
+                    alert("Регистрация пройдена");
+                }).fail(function(data) {
+                    alert("В процесе регистрации возникла ошибка");
+                });
+            });
+        });
+
+        function GetAllCocktails() {
+         
+            $.ajax({
+                url: '/api/Cocktails/',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    window.WriteResponse(data);
+                },
+                error: function (x, y, z) {
+                    alert(x + '\n' + y + '\n' + z);
+                }
+            });
+        }
+        function WriteResponse(cocktail) {
+            var strResult = "<table><th>ID</th><th>Название</th><th>Автор</th><th>Год издания</th>";
+            $.each(cocktail, function (index, cocktail) {
+                strResult += "<tr><td>" + cocktail.Id + "</td><td> " + cocktail.Name + "</td><td>" + 
+                    cocktail.Description + "</td><td>" + cocktail.Price;
+                    for(var c in cocktail.Constituents) {
+                        strResult += c.Name;
+                    }
+            });
+            strResult += "</table>";
+            $("#tableBlock").html(strResult);
+         
+        }
+    </script>
+}

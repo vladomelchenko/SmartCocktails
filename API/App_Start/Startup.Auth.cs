@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web.Http.Cors;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.Owin;
@@ -10,6 +11,7 @@ using Microsoft.Owin.Security.OAuth;
 using Owin;
 using API.Providers;
 using API.Models;
+using Microsoft.Owin.Cors;
 
 namespace API
 {
@@ -25,7 +27,7 @@ namespace API
             // Настройка контекста базы данных и диспетчера пользователей для использования одного экземпляра на запрос
             app.CreatePerOwinContext(ApplicationDbContext.Create);
             app.CreatePerOwinContext<ApplicationUserManager>(ApplicationUserManager.Create);
-
+            app.UseCors(CorsOptions.AllowAll);
             // Включение использования файла cookie, в котором приложение может хранить информацию для пользователя, выполнившего вход,
             // и использование файла cookie для временного хранения информации о входах пользователя с помощью стороннего поставщика входа
             app.UseCookieAuthentication(new CookieAuthenticationOptions());

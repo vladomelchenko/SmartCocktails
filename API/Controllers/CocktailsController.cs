@@ -1,39 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.Entity;
+﻿using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
+using System.Web.Http.Cors;
 using System.Web.Http.Description;
 using API.Models;
+using API.Services;
+using API.Services.Interfaces;
 
 namespace API.Controllers
 {
     public class CocktailsController : ApiController
     {
-        private ApplicationDbContext db = new ApplicationDbContext();
+        private readonly ApplicationDbContext _db = new ApplicationDbContext();
 
         // GET: api/Cocktails
         public IQueryable<Cocktail> GetCocktails()
         {
-            var cocktails = db.Cocktails;
-            return cocktails;
+            CocktailService cocktailService = new CocktailService(_db);
+            return cocktailService.GetCocktails();
         }
 
         // GET: api/Cocktails/5
         [ResponseType(typeof(Cocktail))]
         public async Task<IHttpActionResult> GetCocktail(int id)
         {
-            var cocktailConstituents = db.CocktailConstituetnses.Include(c => c.Constituent).Include(c=>c.Cocktail);
-            foreach (var elem in cocktailConstituents)
-            {
-                elem.Constituent =await db.Constituents.FindAsync(elem.Constituent.Id);
-            }
-            Cocktail cocktail = await db.Cocktails.Include(c => cocktailConstituents).Include(c=>c.CocktailConstituents).FirstAsync(c => c.Id == id);
+            CocktailService cocktailService = new CocktailService(_db);
+            var cocktail = await cocktailService.GetCocktailAsync(id);
             if (cocktail == null)
             {
                 return NotFound();
@@ -41,6 +36,9 @@ namespace API.Controllers
 
             return Ok(cocktail);
         }
+
+
+        #region NotUseableFunc
 
         // PUT: api/Cocktails/5
         [ResponseType(typeof(void))]
@@ -56,11 +54,11 @@ namespace API.Controllers
                 return BadRequest();
             }
 
-            db.Entry(cocktail).State = EntityState.Modified;
+            _db.Entry(cocktail).State = EntityState.Modified;
 
             try
             {
-                await db.SaveChangesAsync();
+                await _db.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -86,8 +84,8 @@ namespace API.Controllers
                 return BadRequest(ModelState);
             }
 
-            db.Cocktails.Add(cocktail);
-            await db.SaveChangesAsync();
+            _db.Cocktails.Add(cocktail);
+            await _db.SaveChangesAsync();
 
             return CreatedAtRoute("DefaultApi", new { id = cocktail.Id }, cocktail);
         }
@@ -96,14 +94,14 @@ namespace API.Controllers
         [ResponseType(typeof(Cocktail))]
         public async Task<IHttpActionResult> DeleteCocktail(int id)
         {
-            Cocktail cocktail = await db.Cocktails.FindAsync(id);
+            Cocktail cocktail = await _db.Cocktails.FindAsync(id);
             if (cocktail == null)
             {
                 return NotFound();
             }
 
-            db.Cocktails.Remove(cocktail);
-            await db.SaveChangesAsync();
+            _db.Cocktails.Remove(cocktail);
+            await _db.SaveChangesAsync();
 
             return Ok(cocktail);
         }
@@ -112,14 +110,16 @@ namespace API.Controllers
         {
             if (disposing)
             {
-                db.Dispose();
+                _db.Dispose();
             }
             base.Dispose(disposing);
         }
 
         private bool CocktailExists(int id)
         {
-            return db.Cocktails.Count(e => e.Id == id) > 0;
+            return _db.Cocktails.Count(e => e.Id == id) > 0;
         }
+
+        #endregion
     }
 }

@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -10,110 +7,43 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
 using API.Models;
+using API.Services;
+using API.Services.Interfaces;
 
 namespace API.Controllers
 {
     public class ConstituentsController : ApiController
     {
-        private ApplicationDbContext db = new ApplicationDbContext();
+        ApplicationDbContext _db = new ApplicationDbContext();
+
+        [Route("api/Constituents/Cocktail")]
+        [ResponseType(typeof(IEnumerable<Cocktail>))]
+        public IEnumerable<Cocktail> GetCocktailByConstituent(int constituentId)
+        {
+            IConstituentService cocktailService = new ConstituentService(_db);
+            return  cocktailService.GetCocktailsByConstituentId(constituentId);
+        }
 
         // GET: api/Constituents
+        [ResponseType(typeof(IQueryable<Constituent>))]
         public IQueryable<Constituent> GetConstituents()
         {
-            return db.Constituents;
+            IConstituentService constituentService = new ConstituentService(_db);
+            return constituentService.GetConstituents();
         }
 
         // GET: api/Constituents/5
-        [ResponseType(typeof(Constituent))]
-        public async Task<IHttpActionResult> GetConstituent(int id)
+        [ResponseType(typeof(Cocktail))]
+        public async Task<IHttpActionResult> GetCocktail(int id)
         {
-            Constituent constituent = await db.Constituents.FindAsync(id);
+            IConstituentService constituentService = new ConstituentService(_db);
+            var constituent = await constituentService.GetConstituentAsync(id);
             if (constituent == null)
             {
                 return NotFound();
             }
 
             return Ok(constituent);
-        }
-
-        // PUT: api/Constituents/5
-        [ResponseType(typeof(void))]
-        public async Task<IHttpActionResult> PutConstituent(int id, Constituent constituent)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            if (id != constituent.Id)
-            {
-                return BadRequest();
-            }
-
-            db.Entry(constituent).State = EntityState.Modified;
-
-            try
-            {
-                await db.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ConstituentExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return StatusCode(HttpStatusCode.NoContent);
-        }
-
-        // POST: api/Constituents
-        [ResponseType(typeof(Constituent))]
-        public async Task<IHttpActionResult> PostConstituent(Constituent constituent)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            db.Constituents.Add(constituent);
-            await db.SaveChangesAsync();
-
-            return CreatedAtRoute("DefaultApi", new { id = constituent.Id }, constituent);
-        }
-
-        // DELETE: api/Constituents/5
-        [ResponseType(typeof(Constituent))]
-        public async Task<IHttpActionResult> DeleteConstituent(int id)
-        {
-            Constituent constituent = await db.Constituents.FindAsync(id);
-            if (constituent == null)
-            {
-                return NotFound();
-            }
-
-            db.Constituents.Remove(constituent);
-            await db.SaveChangesAsync();
-
-            return Ok(constituent);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-
-        private bool ConstituentExists(int id)
-        {
-            return db.Constituents.Count(e => e.Id == id) > 0;
         }
     }
 }

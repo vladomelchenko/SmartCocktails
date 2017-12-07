@@ -1,30 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
+using System.Web.Http.Cors;
 using System.Web.Http.Description;
 using API.Models;
+using API.Services;
 
 namespace API.Controllers
 {
     public class IotsController : ApiController
     {
-        ApplicationDbContext db = new ApplicationDbContext();
+        ApplicationDbContext _db = new ApplicationDbContext();
         public IQueryable<Iot> GetIots()
         {
-            return db.Iots.Include(i => i.Club).Include(i => i.IotConstituents);
+            return new IotService(_db).GetIots();
         }
 
         // GET: api/Cities/5
         [ResponseType(typeof(City))]
         public async Task<IHttpActionResult> GetIot(int id)
         {
-            Iot iot = await db.Iots.Include(i => i.Club).Include(i => i.IotConstituents)
-                .FirstOrDefaultAsync(i => i.Id == id);
+            Iot iot = await new IotService(_db).GetIotsAsync(id);
             if (iot == null)
             {
                 return NotFound();

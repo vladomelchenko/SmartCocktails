@@ -10,7 +10,7 @@ namespace API.Models
         public string CocktailName { get; set; }
         public string Description { get; set; }
         public double Price { get; set; }
-        public byte[] Image { get; set; }
+        public string ImageUrl { get; set; }
         public ICollection<CocktailConstituents> CocktailConstituents { get; set; }
     }
 }
